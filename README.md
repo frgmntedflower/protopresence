@@ -97,17 +97,6 @@ sudo pacman -S tk
 
 Starting the daemon from the GUI runs the exact same poll loop as the `protopresence` CLI command, just on a background thread inside the GUI process — it's the same code either way, not a second implementation.
 
-### Building a standalone binary
-
-If you want a single executable to hand out (or attach to a GitHub release) that doesn't require anyone to have Python set up:
-
-```bash
-pip install -e ".[build]"
-./packaging/build_gui.sh
-```
-
-This uses PyInstaller and produces `dist/protopresence-gui`, a self-contained binary. There's also a GitHub Actions workflow at `.github/workflows/release.yml` that does this automatically and attaches the binary to a GitHub release whenever you push a tag like `v0.1.0` (or you can trigger it manually from the Actions tab).
-
 ## Config reference
 
 Config lives at `~/.config/protopresence/config.toml`. Full annotated example in [`config.example.toml`](config.example.toml).
