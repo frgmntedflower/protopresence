@@ -1,0 +1,67 @@
+# protopresence configuration
+#
+# Copy this file to ~/.config/protopresence/config.toml and edit it.
+# Everything except client_id has a sane default.
+
+# Required. Your Discord application's Client ID.
+# Create an app at https://discord.com/developers/applications, then copy
+# the "Application ID" from the General Information page.
+client_id = "123456789012345678"
+
+# How often (in seconds) to scan running processes and re-check for a
+# tracked game or app. Discord itself rate-limits presence updates to
+# roughly once every 15 seconds, so going much lower than that won't help.
+poll_interval = 15.0
+
+# Extra Steam library roots to scan, on top of the defaults protopresence
+# already checks:
+#   ~/.steam/steam
+#   ~/.local/share/Steam
+#   ~/.var/app/com.valvesoftware.Steam/.local/share/Steam  (Flatpak Steam)
+extra_steam_roots = [
+    # "/mnt/games/SteamLibrary",
+]
+
+# --- Native applications ---------------------------------------------------
+#
+# A watch-list of ordinary (non-game) processes to show a presence for when
+# no game is running. The key is the process name exactly as it shows up in
+# `ps -C <name>` (case-insensitive) -- for example "nvim", "code", "ardour6".
+#
+# A bare string is shorthand for `details`. Use `true` to track a process
+# with no custom text (its process name is shown as-is). A table lets you
+# set every field, including the small/large image keys, which must match
+# asset names you've uploaded to your Discord app's Rich Presence art page.
+[native]
+nvim = "Editing code"
+code = { details = "Writing code", large_image = "vscode", large_text = "VS Code" }
+ardour6 = true
+
+# --- Steam game overrides ---------------------------------------------------
+#
+# Keyed by numeric Steam AppID (as a string). Without an entry here,
+# protopresence still shows the game's real name and store header image --
+# it never shows a bare numeric AppID. The name comes from the game's local
+# install manifest if it's installed, falling back to Steam's local
+# appinfo.vdf client cache (still 100% local, no network calls) for games
+# Steam knows about but that aren't installed under a recognized library
+# path. On the rare occasion neither source has it, you just get "Playing
+# a Steam Game" instead of an ID. The header image is just a predictable
+# per-AppID Steam CDN URL, so it works even in that last case -- though a
+# handful of unlisted/delisted titles won't have one, and Discord will
+# simply show no image rather than error.
+#
+# These overrides just let you customize the text/art further. You can find
+# a game's AppID in its store page URL, e.g. store.steampowered.com/app/440/
+# is AppID 440.
+[steam_overrides]
+440 = { details = "Fragging in TF2", large_image = "tf2_logo", large_text = "Team Fortress 2" }
+730 = "Playing Counter-Strike 2"
+
+# --- Bare Wine game overrides ------------------------------------------------
+#
+# Keyed by the .exe basename (lowercase) of a game launched *outside* Steam,
+# e.g. through Lutris, Bottles, or a plain `wine SomeGame.exe`. Without an
+# entry here, the raw .exe name is shown.
+[wine_overrides]
+"eldenring.exe" = { details = "Dying in the Lands Between", large_image = "elden_ring" }

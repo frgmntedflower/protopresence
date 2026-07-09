@@ -1,0 +1,14 @@
+[Unit]
+Description=protopresence - automatic Discord Rich Presence for Steam/Proton/Wine games
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Adjust this path if protopresence isn't on PATH for systemd user services,
+# e.g. `%h/.local/pipx/venvs/protopresence/bin/protopresence` for a pipx install.
+ExecStart=%h/.local/bin/protopresence
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
