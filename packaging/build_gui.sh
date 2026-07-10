@@ -20,7 +20,7 @@ pyinstaller \
     --name protopresence-gui \
     --paths src \
     --add-data "src/protopresence/assets:protopresence/assets" \
-    src/protopresence/gui.py
+    packaging/gui_launcher.py
 
 echo
 echo "Built: dist/protopresence-gui"
