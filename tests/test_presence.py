@@ -51,6 +51,19 @@ def test_build_presence_payload_non_steam_has_no_default_image() -> None:
     assert "large_image" not in payload
 
 
+def test_build_presence_payload_includes_button_when_both_set() -> None:
+    activity = Activity(kind=ActivityKind.NATIVE, key="nvim", display_name="nvim", pid=1)
+    override = ActivityOverride(button_label="View on GitHub", button_url="https://github.com/x/y")
+    payload = build_presence_payload(activity, override)
+    assert payload["buttons"] == [{"label": "View on GitHub", "url": "https://github.com/x/y"}]
+
+
+def test_build_presence_payload_no_button_when_unset() -> None:
+    activity = Activity(kind=ActivityKind.NATIVE, key="nvim", display_name="nvim", pid=1)
+    payload = build_presence_payload(activity, ActivityOverride())
+    assert "buttons" not in payload
+
+
 def test_presence_manager_connect_failure_does_not_raise(monkeypatch) -> None:
     class ExplodingPresence:
         def __init__(self, client_id: str) -> None:

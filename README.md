@@ -106,6 +106,7 @@ Config lives at `~/.config/protopresence/config.toml`. Full annotated example in
 | `client_id` | string | *required* | Your Discord application ID |
 | `poll_interval` | number | `15.0` | Seconds between checks. Discord itself won't take updates much faster than 15s anyway |
 | `extra_steam_roots` | list of strings | `[]` | Extra Steam install locations, beyond the defaults protopresence already checks |
+| `button_label` / `button_url` | strings | *(none)* | A clickable button shown on every presence card; both or neither |
 | `[native]` | table | `{}` | Watch-list of process names to show a presence for when no game is running |
 | `[steam_overrides]` | table | `{}` | Keyed by numeric Steam AppID |
 | `[wine_overrides]` | table | `{}` | Keyed by the `.exe` basename (lowercase) of a bare Wine game |
@@ -114,7 +115,9 @@ Each entry in the three override tables can be:
 
 - a **bare string**, which is shorthand for `details` — e.g. `nvim = "Editing code"`
 - `true`, meaning "track this, but don't customize anything" — the auto-generated name is used as-is
-- a **table** with any of: `details`, `state`, `large_image`, `large_text`, `small_image`, `small_text`
+- a **table** with any of: `details`, `state`, `large_image`, `large_text`, `small_image`, `small_text`, `button_label`, `button_url`
+
+A `button_label`/`button_url` inside a specific override wins over the top-level default, just for that game/app. Both fields have to be set together (`button_url` must be `http://` or `https://`), and — a Discord quirk, not a protopresence one — the button never shows up on *your own* client; it's visible to other people looking at your profile.
 
 ```toml
 [native]

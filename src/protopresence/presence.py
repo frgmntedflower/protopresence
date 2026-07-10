@@ -25,15 +25,18 @@ logger = logging.getLogger(__name__)
 _STEAM_HEADER_IMAGE_URL = "https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/header.jpg"
 
 
-def build_presence_payload(activity: Activity, override: ActivityOverride) -> dict[str, str]:
+def build_presence_payload(activity: Activity, override: ActivityOverride) -> dict[str, Any]:
     """Merge a detected activity with its config override into pypresence kwargs.
 
     Any override field left unset falls back to the activity's
     auto-generated display name (for ``details``), or -- for Steam games --
     to that game's store header image (for ``large_image``/``large_text``),
-    or is simply omitted.
+    or is simply omitted. If ``button_label``/``button_url`` are set (see
+    ``ActivityOverride``/``Config``), the presence gets one clickable
+    button -- note Discord doesn't render RPC buttons on your *own* client,
+    only for other people viewing your profile.
     """
-    payload: dict[str, str] = {"details": override.details or activity.display_name}
+    payload: dict[str, Any] = {"details": override.details or activity.display_name}
 
     large_image = override.large_image
     large_text = override.large_text
@@ -43,13 +46,15 @@ def build_presence_payload(activity: Activity, override: ActivityOverride) -> di
         large_image = large_image or _STEAM_HEADER_IMAGE_URL.format(appid=activity.key)
         large_text = large_text or activity.display_name
 
-    optional_fields = {
+    optional_fields: dict[str, Any] = {
         "state": override.state,
         "large_image": large_image,
         "large_text": large_text,
         "small_image": override.small_image,
         "small_text": override.small_text,
     }
+    if override.button_label and override.button_url:
+        optional_fields["buttons"] = [{"label": override.button_label, "url": override.button_url}]
     for field_name, value in optional_fields.items():
         if value:
             payload[field_name] = value

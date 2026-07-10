@@ -102,6 +102,52 @@ def test_extra_steam_roots_must_be_string_list(tmp_path: Path) -> None:
         load_config(path)
 
 
+def test_top_level_button_pair(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        'client_id = "1"\nbutton_label = "View on GitHub"\nbutton_url = "https://github.com/x/y"\n',
+    )
+    config = load_config(path)
+    assert config.button_label == "View on GitHub"
+    assert config.button_url == "https://github.com/x/y"
+
+
+def test_button_label_without_url_raises(tmp_path: Path) -> None:
+    path = write(tmp_path, 'client_id = "1"\nbutton_label = "View on GitHub"\n')
+    with pytest.raises(ConfigError, match="button_label and button_url"):
+        load_config(path)
+
+
+def test_button_url_without_label_raises(tmp_path: Path) -> None:
+    path = write(tmp_path, 'client_id = "1"\nbutton_url = "https://github.com/x/y"\n')
+    with pytest.raises(ConfigError, match="button_label and button_url"):
+        load_config(path)
+
+
+def test_button_url_must_be_http_scheme(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        'client_id = "1"\nbutton_label = "x"\nbutton_url = "ftp://not-http"\n',
+    )
+    with pytest.raises(ConfigError, match="http"):
+        load_config(path)
+
+
+def test_override_button_pair_must_both_be_set(tmp_path: Path) -> None:
+    path = write(tmp_path, 'client_id = "1"\n[native]\nfoo = { button_label = "x" }\n')
+    with pytest.raises(ConfigError, match="button_label and button_url"):
+        load_config(path)
+
+
+def test_override_button_pair_valid(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        'client_id = "1"\n[native]\nfoo = { button_label = "x", button_url = "https://example.com" }\n',
+    )
+    config = load_config(path)
+    assert config.native["foo"] == ActivityOverride(button_label="x", button_url="https://example.com")
+
+
 class TestSetTopLevelScalar:
     def test_inserts_when_missing(self) -> None:
         result = set_top_level_scalar("", "client_id", '"abc"')

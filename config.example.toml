@@ -22,6 +22,15 @@ extra_steam_roots = [
     # "/mnt/games/SteamLibrary",
 ]
 
+# Optional: a clickable button shown on every presence card, unless a
+# specific [native]/[steam_overrides]/[wine_overrides] entry sets its own
+# button_label/button_url (which then takes priority just for that game).
+# Both fields must be set together, and button_url must be http(s).
+# Note: Discord doesn't render RPC buttons on your *own* client -- only
+# other people viewing your profile see and can click them.
+# button_label = "View on GitHub"
+# button_url = "https://github.com/you/your-repo"
+
 # --- Native applications ---------------------------------------------------
 #
 # A watch-list of ordinary (non-game) processes to show a presence for when
@@ -65,3 +74,6 @@ ardour6 = true
 # entry here, the raw .exe name is shown.
 [wine_overrides]
 "eldenring.exe" = { details = "Dying in the Lands Between", large_image = "elden_ring" }
+
+# A per-game button, overriding the top-level default just for this game:
+# "eldenring.exe" = { details = "Dying in the Lands Between", button_label = "Elden Ring on Steam", button_url = "https://store.steampowered.com/app/1245620" }

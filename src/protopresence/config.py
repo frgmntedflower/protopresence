@@ -20,6 +20,8 @@ _OVERRIDE_FIELDS = (
     "large_text",
     "small_image",
     "small_text",
+    "button_label",
+    "button_url",
 )
 
 
@@ -33,6 +35,9 @@ class ActivityOverride:
 
     Any field left as ``None`` falls back to an auto-generated value (see
     ``detect.resolve_override`` / ``presence.build_presence_payload``).
+    ``button_label``/``button_url`` add a clickable button to the presence
+    card; if unset here, the top-level ``button_label``/``button_url``
+    (see ``Config``) apply instead, if configured.
     """
 
     details: str | None = None
@@ -41,6 +46,8 @@ class ActivityOverride:
     large_text: str | None = None
     small_image: str | None = None
     small_text: str | None = None
+    button_label: str | None = None
+    button_url: str | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +58,15 @@ class Config:
     native: dict[str, ActivityOverride] = field(default_factory=dict)
     steam_overrides: dict[str, ActivityOverride] = field(default_factory=dict)
     wine_overrides: dict[str, ActivityOverride] = field(default_factory=dict)
+    button_label: str | None = None
+    button_url: str | None = None
+
+
+def _validate_button_pair(label: str | None, url: str | None) -> None:
+    if (label is None) != (url is None):
+        raise ConfigError("button_label and button_url must both be set, or neither")
+    if url is not None and not (url.startswith("http://") or url.startswith("https://")):
+        raise ConfigError("button_url must start with http:// or https://")
 
 
 def _parse_override(raw: Any) -> ActivityOverride:
@@ -67,7 +83,9 @@ def _parse_override(raw: Any) -> ActivityOverride:
         for name, value in raw.items():
             if value is not None and not isinstance(value, str):
                 raise ConfigError(f"override field {name!r} must be a string")
-        return ActivityOverride(**{name: raw.get(name) for name in _OVERRIDE_FIELDS})
+        fields = {name: raw.get(name) for name in _OVERRIDE_FIELDS}
+        _validate_button_pair(fields["button_label"], fields["button_url"])
+        return ActivityOverride(**fields)
     raise ConfigError(f"invalid override value: {raw!r} (expected string, bool, or table)")
 
 
@@ -117,6 +135,14 @@ def load_config(path: Path) -> Config:
     if not isinstance(extra_steam_roots, list) or not all(isinstance(p, str) for p in extra_steam_roots):
         raise ConfigError("extra_steam_roots must be a list of strings")
 
+    button_label = data.get("button_label")
+    button_url = data.get("button_url")
+    if button_label is not None and not isinstance(button_label, str):
+        raise ConfigError("button_label must be a string")
+    if button_url is not None and not isinstance(button_url, str):
+        raise ConfigError("button_url must be a string")
+    _validate_button_pair(button_label, button_url)
+
     native = _parse_override_table(data.get("native"), "native", lowercase_keys=True)
     steam_overrides = _parse_override_table(data.get("steam_overrides"), "steam_overrides", lowercase_keys=False)
     wine_overrides = _parse_override_table(data.get("wine_overrides"), "wine_overrides", lowercase_keys=True)
@@ -128,6 +154,8 @@ def load_config(path: Path) -> Config:
         native=native,
         steam_overrides=steam_overrides,
         wine_overrides=wine_overrides,
+        button_label=button_label,
+        button_url=button_url,
     )
 
 

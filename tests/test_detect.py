@@ -192,6 +192,27 @@ def test_resolve_override_returns_empty_when_unconfigured() -> None:
     assert resolve_override(activity, config) == ActivityOverride()
 
 
+def test_resolve_override_applies_top_level_button_default() -> None:
+    config = make_config(button_label="View on GitHub", button_url="https://github.com/x/y")
+    activity = detect_native_activity([proc(1, "nvim")], {"nvim"})
+    assert activity is not None
+    override = resolve_override(activity, config)
+    assert override.button_label == "View on GitHub"
+    assert override.button_url == "https://github.com/x/y"
+
+
+def test_resolve_override_per_activity_button_wins_over_default() -> None:
+    config = make_config(
+        button_label="Default", button_url="https://default.example",
+        native={"nvim": ActivityOverride(button_label="Custom", button_url="https://custom.example")},
+    )
+    activity = detect_native_activity([proc(1, "nvim")], {"nvim"})
+    assert activity is not None
+    override = resolve_override(activity, config)
+    assert override.button_label == "Custom"
+    assert override.button_url == "https://custom.example"
+
+
 def test_resolve_override_uses_correct_table_per_kind() -> None:
     config = make_config(
         native={"nvim": ActivityOverride(details="native hit")},

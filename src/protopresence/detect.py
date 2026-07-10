@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from pathlib import Path
 
@@ -180,10 +180,17 @@ def detect_activity(
 
 
 def resolve_override(activity: Activity, config: Config) -> ActivityOverride:
-    """Look up the configured override table entry for a detected activity."""
+    """Look up the configured override table entry for a detected activity.
+
+    A per-activity ``button_label``/``button_url`` wins if set; otherwise
+    the top-level default (if configured) applies to every activity.
+    """
     table = {
         ActivityKind.STEAM: config.steam_overrides,
         ActivityKind.WINE: config.wine_overrides,
         ActivityKind.NATIVE: config.native,
     }[activity.kind]
-    return table.get(activity.key, ActivityOverride())
+    override = table.get(activity.key, ActivityOverride())
+    if override.button_label is None and override.button_url is None and config.button_label and config.button_url:
+        override = replace(override, button_label=config.button_label, button_url=config.button_url)
+    return override
